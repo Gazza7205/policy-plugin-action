@@ -89,7 +89,6 @@ RunFunctionalTests() {
     fi
 }
 
-
 RemoveExclusions
 BuildAndDeployEnv
 BuildAndDeployServices
