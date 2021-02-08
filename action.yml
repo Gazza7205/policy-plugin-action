@@ -1,0 +1,51 @@
+name: 'Policy Plugin Action'
+description: 'Build, Deploy, Test Policy Plugin Projects'
+author: Gazza7205
+inputs:
+  environment:
+    description: 'Environment (i.e uat)'
+    required: true
+  url:
+    description: 'Gateway or Portal API URL'
+    required: true
+  type:
+    description: 'Portal or Direct'
+    required: true
+  username:
+    description: 'Gateway Username'
+    required: false
+  password:
+    description: 'Gateway Password'
+    required: false
+  access_key:
+    description: 'Portal API Key'
+    required: false
+  secret_key:
+    description: 'Portal API Secret'
+    required: false
+  ct_api_id:
+    description: 'CT API ID'
+    required: false
+  ct_api_secret:
+    description: 'CT API Secret'
+    required: false
+  ct_test_id:
+    description: 'CT Test ID'
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      run: |
+       type=${{ inputs.type }}
+       type=${type,,}
+       if [[ "${type}" == "portal" ]];
+       then
+       ${{ github.action_path }}/deploy.sh test "${{ inputs.url }}" "${{ inputs.access_key }}" "${{ inputs.secret_key }}" "${{ inputs.ct_api_id }}" "${{ inputs.ct_api_secret }}" "${{ inputs.ct_test_id }}"
+       elif [[ ${type,,} == direct ]]
+       ${{ github.action_path }}/deploy.sh test "${{ inputs.url }}" "${{ inputs.username }}" "${{ inputs.password }}" "${{ inputs.ct_api_id }}" "${{ inputs.ct_api_secret }}" "${{ inputs.ct_test_id }}"
+       else
+       exit 1
+       fi
+
+
