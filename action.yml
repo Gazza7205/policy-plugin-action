@@ -39,10 +39,9 @@ runs:
       run: |
        type=${{ inputs.type }}
        type=${type,,}
-       if [[ "${type}" == "portal" ]];
-       then
+       if [[ "${type}" == "portal" ]]; then
        ${{ github.action_path }}/deploy.sh test "${{ inputs.url }}" "${{ inputs.access_key }}" "${{ inputs.secret_key }}" "${{ inputs.ct_api_id }}" "${{ inputs.ct_api_secret }}" "${{ inputs.ct_test_id }}"
-       elif [[ ${type,,} == direct ]]
+       elif [[ "${type}" == "direct" ]]
        ${{ github.action_path }}/deploy.sh test "${{ inputs.url }}" "${{ inputs.username }}" "${{ inputs.password }}" "${{ inputs.ct_api_id }}" "${{ inputs.ct_api_secret }}" "${{ inputs.ct_test_id }}"
        else
        exit 1
