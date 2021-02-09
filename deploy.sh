@@ -120,7 +120,7 @@ RetrieveProxyUUID() {
     #echo $proxyUUID # | jq -r --arg proxyName $3 '.[] | select(.name==$proxyName).uuid'
 }
 
-#RemoveExclusions
+RemoveExclusions
 
 SetEnvironmentDetails() {
     if [[ "$type" == "portal" ]]; then
