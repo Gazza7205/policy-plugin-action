@@ -33,7 +33,7 @@ BuildAndDeployEnv() {
             ./gradlew ${projectArr[$i]}:build-environment-bundle -q
             echo "Publishing: ${projectArr[$i]}"
             if [[ "$type" == "direct" ]]; then
-                ./gradlew ${projectArr[$i]}:import-bundle -PenvironmentType=$environment -PgatewayURL=$gatewayUrl -PgatewayUsername=$gatewayUsername -PgatewayPassword=$gatewayPassword -q
+                ./gradlew ${projectArr[$i]}:import-bundle -PenvironmentType=$1 -PgatewayURL=$2 -PgatewayUsername=$3 -PgatewayPassword=$4 -q
             else
                 echo "deploy to portal..."
                 version=$(./gradlew ${projectArr[$i]}:getCurrentVersion -q)
@@ -146,8 +146,8 @@ SetEnvironmentDetails() {
         apiId=$5
         apiSecret=$6
         testId=$7
-        BuildAndDeployEnv $type
-        BuildAndDeployServices $type
+        BuildAndDeployEnv $type $gatewayUrl $gatewayUsername $gatewayPassword
+        BuildAndDeployServices $type $gatewayUrl $gatewayUsername $gatewayPassword
         RunFunctionalTests
     fi
 }
