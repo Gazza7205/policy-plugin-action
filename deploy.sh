@@ -2,9 +2,9 @@
 # set -o errexit
 # set -o nounset
 # set -o pipefail
-#set -e
+set -e
 # hack to initialize gradle
-./gradlew tasks -q >>/dev/null
+./gradlew tasks -q >>/dev/null 2>&1
 # environment to publish to
 echo "Running.."
 type=$1
@@ -156,4 +156,3 @@ SetEnvironmentDetails() {
 }
 
 SetEnvironmentDetails $2 $3 $4 $5 $6 $7 $8
-echo $1 $2 $3 $4 $5 $6 $7 $8
