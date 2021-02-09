@@ -41,14 +41,14 @@ runs:
     - shell: bash
       run: |
        type=$(echo "${{ inputs.type }}" | tr '[:upper:]' '[:lower:]')
-       echo ${type}
        if [[ "${type}" == "portal" ]]; then
        echo ${type}
        ${{ github.action_path }}/deploy.sh "${{ inputs.url }}" "${{ inputs.environment }}" "${{ inputs.url }}" "${{ inputs.access_key }}" "${{ inputs.secret_key }}" "${{ inputs.ct_api_id }}" "${{ inputs.ct_api_secret }}" "${{ inputs.ct_test_id }}"
        elif [[ "${type}" == "direct" ]]; then
        echo ${type}
-       ${{ github.action_path }}/deploy.sh "${{ inputs.type }}" "${{ inputs.environment }}"  "${{ inputs.url }}" "${{ inputs.username }}" "${{ inputs.password }}" "${{ inputs.ct_api_id }}" "${{ inputs.ct_api_secret }}" "${{ inputs.ct_test_id }}"
+       ${{ github.action_path }}/deploy.sh "${{ inputs.type }}" "${{ inputs.environment }}" "${{ inputs.url }}" "${{ inputs.username }}" "${{ inputs.password }}" "${{ inputs.ct_api_id }}" "${{ inputs.ct_api_secret }}" "${{ inputs.ct_test_id }}"
        else
+       echo "exiting.."
        exit 1
        fi
 
