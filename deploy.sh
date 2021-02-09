@@ -59,7 +59,7 @@ BuildAndDeployServices() {
             ./gradlew ${projectArr[$i]}:build -q
             echo "Publishing: ${projectArr[$i]}"
             if [[ "$type" == "direct" ]]; then
-                ./gradlew ${projectArr[$i]}:import -PenvironmentType=$1 -PgatewayURL=$2 -PgatewayUsername=$3 -PgatewayPassword=$4
+                ./gradlew ${projectArr[$i]}:import -PenvironmentType=$1 -PgatewayURL=$2 -PgatewayUsername=$3 -PgatewayPassword=$4 -q
             else
                 echo "deploy to portal..."
             fi
