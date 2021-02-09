@@ -5,6 +5,7 @@ set -o pipefail
 # hack to initialize gradle
 ./gradlew tasks -q >>/dev/null 2>&1
 # environment to publish to
+echo "Running.."
 type=$1
 testId=""
 authHeader=""
@@ -139,6 +140,7 @@ SetEnvironmentDetails() {
         #BuildAndDeployServices $type
         #DeployToProxy
     else
+        echo "Direct.."
         environment=$1
         gatewayUrl=$2
         gatewayUsername=$3
@@ -152,4 +154,4 @@ SetEnvironmentDetails() {
     fi
 }
 
-SetEnvironmentDetails $2 $3 $4 $5 $6 $7 $8 $9
+SetEnvironmentDetails $2 $3 $4 $5 $6 $7 $8
