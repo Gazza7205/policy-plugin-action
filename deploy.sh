@@ -2,17 +2,17 @@
 set -o errexit
 set -o nounset
 set -o pipefail
-
 # hack to initialize gradle
 ./gradlew tasks -q >>/dev/null 2>&1
 # environment to publish to
-environment=$1
-gatewayUrl=$2
-gatewayUsername=$3
-gatewayPassword=$4
-apiId=$5
-apiSecret=$6
-testId=$7
+type=$1
+testId=""
+authHeader=""
+proxyUUID=""
+papi_bundle_uri="/policy-management/0.1/gateway-bundles"
+papi_deployment_uri="/deployments/0.1/gateway-bundles"
+papi_proxy_uri="/deployments/1.0/proxies"
+papi_token_uri="/auth/oauth/v2/token"
 
 projects=$(./gradlew getSubProjects -q --warning-mode none)
 projectArr=($(echo $projects | tr ";" "\n"))
@@ -32,7 +32,20 @@ BuildAndDeployEnv() {
             echo "Building Environment Bundle: ${projectArr[$i]}"
             ./gradlew ${projectArr[$i]}:build-environment-bundle -q
             echo "Publishing: ${projectArr[$i]}"
-            ./gradlew ${projectArr[$i]}:import-bundle -PenvironmentType=$environment -PgatewayURL=$gatewayUrl -PgatewayUsername=$gatewayUsername -PgatewayPassword=$gatewayPassword -q
+            if [[ "$type" == "direct" ]]; then
+                ./gradlew ${projectArr[$i]}:import-bundle -PenvironmentType=$environment -PgatewayURL=$gatewayUrl -PgatewayUsername=$gatewayUsername -PgatewayPassword=$gatewayPassword -q
+            else
+                echo "deploy to portal..."
+                version=$(./gradlew ${projectArr[$i]}:getCurrentVersion -q)
+
+                metadata="files=@./${projectArr[$i]}/build/gateway/bundle/${projectArr[$i]}-environment-$version-env.metadata.yml;type=text/yml"
+                installBundle="files=@./${projectArr[$i]}/build/gateway/bundle/${projectArr[$i]}-environment-$version-env.install.bundle;type=application/octet-stream"
+                deleteBundle="files=@./${projectArr[$i]}/build/gateway/bundle/${projectArr[$i]}-environment-$version-env.delete.bundle;type=application/octet-stream"
+
+                bundleUUID=$(curl -s -H "$authHeader" -H "accept: application/json;charset=UTF-8" -XPOST ${2%/}/$3$papi_bundle_uri -H "Content-Type: multipart/form-data" -F $metadata -F $installBundle -F $deleteBundle | jq -r .uuid)
+                echo $bundleUUID
+                curl -s -H "$authHeader" -H "Content-Type:application/json" -XPOST "${2%/}/$3$papi_deployment_uri/$bundleUUID/proxies" --data '{ "proxyUuid": "'$proxyUUID'"}'
+            fi
         fi
     done
 }
@@ -43,7 +56,11 @@ BuildAndDeployServices() {
             echo "Building: ${projectArr[$i]}"
             ./gradlew ${projectArr[$i]}:build -q
             echo "Publishing: ${projectArr[$i]}"
-            ./gradlew ${projectArr[$i]}:import -PenvironmentType=$environment -PgatewayURL=$gatewayUrl -PgatewayUsername=$gatewayUsername -PgatewayPassword=$gatewayPassword -q
+            if [[ "$type" == "direct" ]]; then
+                ./gradlew ${projectArr[$i]}:import -PenvironmentType=$environment -PgatewayURL=$gatewayUrl -PgatewayUsername=$gatewayUsername -PgatewayPassword=$gatewayPassword -q
+            else
+                echo "deploy to portal..."
+            fi
         fi
     done
 }
@@ -89,7 +106,50 @@ RunFunctionalTests() {
     fi
 }
 
-RemoveExclusions
-BuildAndDeployEnv
-BuildAndDeployServices
-RunFunctionalTests
+RetrieveAccessToken() {
+    echo "Retrieving PAPI Access Token"
+    access_token=$(curl -s --user $1:$2 -H "Content-Type:application/x-www-form-urlencoded" ${3%/}$papi_token_uri --data 'grant_type=client_credentials' | jq -r .access_token)
+    authHeader="Authorization: Bearer ${access_token}"
+}
+
+RetrieveProxyUUID() {
+    echo "Retrieving Proxy UUID"
+    #echo $authHeader
+    proxyUUID=$(curl -s -H "$authHeader" -XGET ${1%/}/$2$papi_proxy_uri | jq -r --arg proxyName $3 '.[] | select(.name==$proxyName).uuid')
+    #echo $proxyUUID # | jq -r --arg proxyName $3 '.[] | select(.name==$proxyName).uuid'
+}
+
+#RemoveExclusions
+
+SetEnvironmentDetails() {
+    if [[ "$type" == "portal" ]]; then
+        environment=$1
+        tenantUrl=$2
+        papiUrl=$3
+        clientId=$4
+        secret=$5
+        apiId=$6
+        apiSecret=$7
+        testId=$8
+        RetrieveAccessToken $clientId $secret $papiUrl
+        tenantId=${tenantUrl#https://}
+        tenantId=${tenantId%%.*}
+        RetrieveProxyUUID $papiUrl $tenantId $environment
+        BuildAndDeployEnv $type $papiUrl $tenantId $environment
+        #BuildAndDeployServices $type
+        #DeployToProxy
+    else
+        environment=$1
+        gatewayUrl=$2
+        gatewayUsername=$3
+        gatewayPassword=$4
+        apiId=$5
+        apiSecret=$6
+        testId=$7
+        BuildAndDeployEnv $type
+        BuildAndDeployServices $type
+        RunFunctionalTests
+    fi
+}
+
+SetEnvironmentDetails $2 $3 $4 $5 $6 $7 $8 $9

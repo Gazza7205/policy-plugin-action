@@ -3,11 +3,14 @@ description: 'Build, Deploy, Test Policy Plugin Projects'
 author: Gazza7205
 inputs:
   environment:
-    description: 'Environment (i.e uat)'
+    description: 'Environment (i.e uat) or proxy name'
     required: true
   url:
     description: 'Gateway or Portal API URL'
     required: true
+  papi_url:
+    description: 'PAPI tenant 0 URL'
+    required: false
   type:
     description: 'Portal or Direct'
     required: true
