@@ -43,8 +43,10 @@ runs:
        type=$(echo "${{ inputs.type }}" | tr '[:upper:]' '[:lower:]')
        echo ${type}
        if [[ "${type}" == "portal" ]]; then
+       echo ${type}
        ${{ github.action_path }}/deploy.sh test "${{ inputs.url }}" "${{ inputs.access_key }}" "${{ inputs.secret_key }}" "${{ inputs.ct_api_id }}" "${{ inputs.ct_api_secret }}" "${{ inputs.ct_test_id }}"
        elif [[ "${type}" == "direct" ]]; then
+       echo ${type}
        ${{ github.action_path }}/deploy.sh test "${{ inputs.url }}" "${{ inputs.username }}" "${{ inputs.password }}" "${{ inputs.ct_api_id }}" "${{ inputs.ct_api_secret }}" "${{ inputs.ct_test_id }}"
        else
        exit 1
